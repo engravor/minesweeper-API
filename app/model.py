@@ -38,7 +38,7 @@ class Board(db.Model):
             ['-' for j in range(self.columns)] for i in range(self.rows)
         ])
 
-    def update_current_state(self,row, column, mark):
+    def update_current_state(self, row, column, mark):
         self.current_game_state.get("state")[row][column] = mark
 
     def reveal_cell(self, row, column, operation):
@@ -51,8 +51,17 @@ class Board(db.Model):
                 self.status = 'game_over'
                 self.end_date = datetime.utcnow()
                 self.update_current_state(row, column, '#')
+                self.__show_all_mines()
             else:
                 self.__show_self_and_neighbors(row, column)
+
+    def __show_all_mines(self):
+        for row in range(self.rows):
+            for column in range(self.columns):
+                if self.current_game_state.get('state')[row][column] == '-' and [row, column] in self.mines.get(
+                        'mines'):
+                    self.update_current_state(row, column, '#')
+
 
     def __show_self_and_neighbors(self, row, column):
         i_top = row - 1 if row > 0 else row

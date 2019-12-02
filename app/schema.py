@@ -27,7 +27,7 @@ class BoardSchema(Schema):
     current_game_state = fields.String()
     
     def get_mines_number(self, obj):
-        return len(obj.mines)
+        return len(obj.mines.get('mines'))
 
 
 board_schema = BoardSchema()
