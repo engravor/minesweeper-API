@@ -1,4 +1,3 @@
-from app import db
 from .model import User
 
 
@@ -11,7 +10,3 @@ def authenticate(username, password):
 def identity(payload):
     user_id = payload['identity']
     return User.query.get(user_id)
-
-
-
-

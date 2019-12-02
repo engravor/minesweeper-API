@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -6,7 +7,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
+    JWT_EXPIRATION_DELTA = timedelta(seconds=60 * 60 * 24)
     @staticmethod
     def init_app(app):
         pass

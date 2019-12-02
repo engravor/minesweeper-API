@@ -21,8 +21,10 @@ class BoardSchema(Schema):
     rows = fields.Integer()
     columns = fields.Integer()
     creation_date = fields.DateTime()
-    mines = fields.Function(lambda o: len(o.mines))
+    mines = fields.Method("get_mines_number")
 
+    def get_mines_number(self, obj):
+        return len(obj.mines)
 
 board_schema = BoardSchema()
 

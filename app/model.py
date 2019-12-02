@@ -3,6 +3,7 @@ from sqlalchemy import Column, types, ForeignKey
 from sqlalchemy.dialects import postgresql
 from app import db
 from datetime import datetime
+import random
 
 
 class Board(db.Model):
@@ -17,6 +18,15 @@ class Board(db.Model):
 
     owner_id = Column(types.Integer(), ForeignKey('users.id'), nullable=False)
     owner = db.relationship("User", backref='board', lazy='joined')
+
+    def generate_mines_positions(self, mines):
+        self.mines = []
+        while mines > 0:
+            column_pos = random.randint(0, self.columns - 1)
+            row_pos = random.randint(0, self.rows - 1)
+            if [row_pos, column_pos] not in self.mines:
+                self.mines.append([row_pos, column_pos])
+                mines -= 1
 
 
 class User(db.Model):
