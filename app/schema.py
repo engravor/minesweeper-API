@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from marshmallow import Schema, fields
 
 
@@ -22,12 +24,17 @@ class BoardSchema(Schema):
     id = fields.String()
     rows = fields.Integer()
     columns = fields.Integer()
-    creation_date = fields.DateTime()
+    creation_date = fields.DateTime(format='iso8601')
     mines = fields.Method("get_mines_number")
     current_game_state = fields.String()
-    
+    time_tracking = fields.Method("time_elapsed")
+
     def get_mines_number(self, obj):
         return len(obj.mines.get('mines'))
+
+    def time_elapsed(self, obj):
+        time_traking = obj.end_date - obj.creation_date if obj.end_date else datetime.utcnow() - obj.creation_date
+        return str(time_traking)
 
 
 board_schema = BoardSchema()
