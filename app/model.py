@@ -42,8 +42,11 @@ class Board(db.Model):
         self.current_game_state.get("state")[row][column] = mark
 
     def reveal_cell(self, row, column, operation):
-        if operation == 'x':
+        if operation == 'X':
             self.__show_cell(row, column)
+        elif operation in ['F', '?']:
+            self.update_current_state(row, column, operation)
+
 
     def __show_cell(self, row, column):
         if self.current_game_state.get('state')[row][column] == '-':
@@ -58,10 +61,12 @@ class Board(db.Model):
     def __show_all_mines(self):
         for row in range(self.rows):
             for column in range(self.columns):
-                if self.current_game_state.get('state')[row][column] == '-' and [row, column] in self.mines.get(
+                if self.current_game_state.get('state')[row][column] in ['-', '?'] and [row, column] in self.mines.get(
                         'mines'):
                     self.update_current_state(row, column, '#')
-
+                elif self.current_game_state.get('state')[row][column] == 'F' and [row, column] in self.mines.get(
+                        'mines'):
+                    self.update_current_state(row, column, '#!')
 
     def __show_self_and_neighbors(self, row, column):
         i_top = row - 1 if row > 0 else row
