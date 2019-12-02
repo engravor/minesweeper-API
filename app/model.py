@@ -14,7 +14,7 @@ class Board(db.Model):
     mines = Column(postgresql.JSON)
     current_game_state = Column(postgresql.JSON)
 
-    owner_id = Column(types.Integer(), ForeignKey('user.id'), nullable=False)
+    owner_id = Column(types.Integer(), ForeignKey('users.id'), nullable=False)
     owner = db.relationship("User", backref='board', lazy='dynamic')
 
 
