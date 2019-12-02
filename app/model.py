@@ -93,9 +93,9 @@ class Board(db.Model):
 
         if neighbor_mines == 0:
             for i, j in neighbors_list:
-                self.current_game_state.get("state").update(self.__show_self_and_neighbors(i, j))
+                self.current_game_state.update(self.__show_self_and_neighbors(i, j))
 
-        return self.current_game_state.get("state")
+        return self.current_game_state
 
 
 class User(db.Model):
