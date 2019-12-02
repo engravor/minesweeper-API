@@ -1,3 +1,4 @@
+from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Column, types, ForeignKey
 from sqlalchemy.dialects import postgresql
 from app import db
@@ -15,7 +16,7 @@ class Board(db.Model):
     current_game_state = Column(postgresql.JSON)
 
     owner_id = Column(types.Integer(), ForeignKey('users.id'), nullable=False)
-    owner = db.relationship("User", backref='board', lazy='dynamic')
+    owner = db.relationship("User", backref='board', lazy='joined')
 
 
 class User(db.Model):
@@ -23,6 +24,17 @@ class User(db.Model):
 
     id = Column(types.Integer, primary_key=True)
     username = Column(types.String, nullable=False, unique=True)
-    password = Column(types.String, nullable=False)
+    password_hash = Column(types.String, nullable=False)
 
-    boards = db.relationship("Boards")
+    boards = db.relationship("Board")
+
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
