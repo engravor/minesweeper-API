@@ -1,11 +1,12 @@
-from flask import request
-from marshmallow.exceptions import ValidationError
-from flask_restful import Resource
-from .model import Board, User
-from .schema import init_game_schema, register_user_schema, user_schema, board_schema
-from app import db
 import flask
+from flask import request
 from flask_jwt import jwt_required, current_identity
+from flask_restful import Resource
+from marshmallow.exceptions import ValidationError
+from sqlalchemy.orm.attributes import flag_modified
+from app import db
+from .model import Board, User
+from .schema import init_game_schema, register_user_schema, user_schema, board_schema, cell_resource
 
 
 class RegisterUserResource(Resource):
@@ -22,12 +23,13 @@ class RegisterUserResource(Resource):
 
 class BoardCollectionResource(Resource):
 
-    @jwt_required
+    @jwt_required()
     def post(self):
         try:
             args = init_game_schema.load(request.get_json() or {})
             new_board = Board(owner=current_identity, rows=args.get('rows'), columns=args.get('columns'))
             new_board.generate_mines_positions(args.get('mines'))
+            new_board.initialize_board()
             db.session.add(new_board)
             db.session.commit()
             return flask.json.loads(board_schema.dumps(new_board)), 201
@@ -46,3 +48,16 @@ class BoardEntityResource(Resource):
     def get(self, board_id):
         board = Board.query.filter_by(id=board_id).first_or_404()
         return flask.json.loads(board_schema.dumps(board))
+
+class CellResource(Resource):
+
+    def post(self, board_id):
+        board = Board.query.filter_by(id=board_id).first_or_404()
+        args = cell_resource.load(request.get_json() or {})
+        board.reveal_cell(args.get('row'), args.get('column'), args.get('operation'))
+        flag_modified(board, 'current_game_state')
+        db.session.add(board)
+        db.session.commit()
+        return flask.json.loads(board_schema.dumps(board))
+
+

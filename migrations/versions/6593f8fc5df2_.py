@@ -1,16 +1,16 @@
 """empty message
 
-Revision ID: fc8e869b975b
+Revision ID: 6593f8fc5df2
 Revises: 
-Create Date: 2019-12-02 14:01:36.579327
+Create Date: 2019-12-02 17:26:42.382802
 
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+
 
 # revision identifiers, used by Alembic.
-revision = 'fc8e869b975b'
+revision = '6593f8fc5df2'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,7 +21,7 @@ def upgrade():
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(), nullable=False),
-    sa.Column('password', sa.String(), nullable=False),
+    sa.Column('password_hash', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('username')
     )
@@ -30,8 +30,10 @@ def upgrade():
     sa.Column('rows', sa.Integer(), nullable=False),
     sa.Column('columns', sa.Integer(), nullable=False),
     sa.Column('creation_date', sa.DateTime(), nullable=False),
-    sa.Column('mines', postgresql.JSON(astext_type=sa.Text()), nullable=True),
-    sa.Column('current_game_state', postgresql.JSON(astext_type=sa.Text()), nullable=True),
+    sa.Column('end_date', sa.DateTime(), nullable=True),
+    sa.Column('status', sa.String(), nullable=True),
+    sa.Column('mines', sa.JSON(), nullable=True),
+    sa.Column('current_game_state', sa.JSON(), nullable=True),
     sa.Column('owner_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['owner_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')

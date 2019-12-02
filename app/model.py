@@ -1,9 +1,11 @@
-from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import Column, types, ForeignKey
-from sqlalchemy.dialects import postgresql
-from app import db
-from datetime import datetime
 import random
+from datetime import datetime
+
+from sqlalchemy import Column, types, ForeignKey, JSON
+from sqlalchemy.ext.mutable import MutableDict
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from app import db
 
 
 class Board(db.Model):
@@ -13,20 +15,73 @@ class Board(db.Model):
     rows = Column(types.Integer, nullable=False)
     columns = Column(types.Integer, nullable=False)
     creation_date = Column(types.DateTime, nullable=False, default=datetime.utcnow)
-    mines = Column(postgresql.JSON)
-    current_game_state = Column(postgresql.JSON)
+    end_date = Column(types.DateTime, nullable=True)
+    status = Column(types.String)
+    mines = Column(MutableDict.as_mutable(JSON))
+    current_game_state = Column(MutableDict.as_mutable(JSON))
 
     owner_id = Column(types.Integer(), ForeignKey('users.id'), nullable=False)
     owner = db.relationship("User", backref='board', lazy='joined')
 
     def generate_mines_positions(self, mines):
-        self.mines = []
+        self.mines = dict(mines=[])
         while mines > 0:
             column_pos = random.randint(0, self.columns - 1)
             row_pos = random.randint(0, self.rows - 1)
-            if [row_pos, column_pos] not in self.mines:
-                self.mines.append([row_pos, column_pos])
+            if [row_pos, column_pos] not in self.mines.get("mines"):
+                self.mines.get("mines").append([row_pos, column_pos])
                 mines -= 1
+
+    def initialize_board(self):
+        self.status = 'playing'
+        self.current_game_state = dict(state=[
+            ['-' for j in range(self.columns)] for i in range(self.rows)
+        ])
+
+    def update_current_state(self,row, column, mark):
+        self.current_game_state.get("state")[row][column] = mark
+
+    def reveal_cell(self, row, column, operation):
+        if operation == 'x':
+            self.__show_cell(row, column)
+
+    def __show_cell(self, row, column):
+        if self.current_game_state.get('state')[row][column] == '-':
+            if [row, column] in self.mines.get('mines'):
+                self.status = 'game_over'
+                self.end_date = datetime.utcnow()
+                self.update_current_state(row, column, '#')
+            else:
+                self.__show_self_and_neighbors(row, column)
+
+    def __show_self_and_neighbors(self, row, column):
+        i_top = row - 1 if row > 0 else row
+        j_left = column - 1 if column > 0 else column
+        i_bottom = row + 1 if row < self.rows - 1 else row
+        j_right = column + 1 if column < self.columns - 1 else column
+
+        neighbor_mines = 0
+        neighbors_list = []
+
+        for i in range(i_top, i_bottom + 1):
+            for j in range(j_left, j_right + 1):
+                if i == row and j == column:
+                    continue
+                if isinstance(self.current_game_state.get('state')[i][j], int):
+                    continue
+                neighbors_list.append((i, j))
+
+        for i, j in neighbors_list:
+            if [i, j] in self.mines.get('mines'):
+                neighbor_mines += 1
+
+        self.current_game_state.get("state")[row][column] = neighbor_mines
+
+        if neighbor_mines == 0:
+            for i, j in neighbors_list:
+                self.current_game_state.get("state").update(self.__show_self_and_neighbors(i, j))
+
+        return self.current_game_state.get("state")
 
 
 class User(db.Model):
