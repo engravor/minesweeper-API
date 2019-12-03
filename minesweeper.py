@@ -3,14 +3,17 @@ from flask_migrate import Migrate
 from flask_restful import Api
 from flask_jwt import JWT
 from app.jwt import authenticate, identity
+from flask_cors import CORS
 
 from app import create_app, db
-from app.resource import BoardCollectionResource, BoardEntityResource, RegisterUserResource, CellResource, PauseResumeResource
+from app.resource import BoardCollectionResource, BoardEntityResource, RegisterUserResource, CellResource, \
+    PauseResumeResource
 from flask_swagger_ui import get_swaggerui_blueprint
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 migrate = Migrate(app, db)
 jwt = JWT(app, authenticate, identity)
+cors = CORS(app)
 
 api = Api(app)
 api.add_resource(BoardCollectionResource, '/boards')
