@@ -4,9 +4,10 @@ from flask_jwt import jwt_required, current_identity
 from flask_restful import Resource
 from marshmallow.exceptions import ValidationError
 from sqlalchemy.orm.attributes import flag_modified
+
 from app import db
 from .model import Board, User
-from .schema import init_game_schema, register_user_schema, user_schema, board_schema, cell_resource
+from .schema import init_game_schema, register_user_schema, user_schema, board_schema, cell_schema
 
 
 class RegisterUserResource(Resource):
@@ -36,7 +37,7 @@ class BoardCollectionResource(Resource):
         except ValidationError as e:
             return e.messages, 400
 
-    @jwt_required
+    @jwt_required()
     def get(self):
         user_boards = board_schema.dumps(current_identity.boards, many=True)
         return flask.json.loads(user_boards)
@@ -46,18 +47,35 @@ class BoardEntityResource(Resource):
 
     @jwt_required()
     def get(self, board_id):
-        board = Board.query.filter_by(id=board_id).first_or_404()
-        return flask.json.loads(board_schema.dumps(board))
+        board = Board.query.filter_by(id=board_id, owner=current_identity).first()
+        if board:
+            return flask.json.loads(board_schema.dumps(board))
+        else:
+            return "The board does not exist or you don't have enough privileges to see it.", 400
+
 
 class CellResource(Resource):
 
     def post(self, board_id):
-        board = Board.query.filter_by(id=board_id).first_or_404()
-        args = cell_resource.load(request.get_json() or {})
-        board.reveal_cell(args.get('row'), args.get('column'), args.get('operation'))
-        flag_modified(board, 'current_game_state')
-        db.session.add(board)
-        db.session.commit()
-        return flask.json.loads(board_schema.dumps(board))
+        board = Board.query.filter_by(id=board_id).first()
+        if board:
+            args = cell_schema.load(request.get_json() or {})
+            try:
+                self.__validate_params(board, args)
+                board.reveal_cell(args.get('row'), args.get('column'), args.get('operation'))
+                flag_modified(board, 'current_game_state')
+                db.session.add(board)
+                db.session.commit()
+                return flask.json.loads(board_schema.dumps(board))
+            except ValidationError as e:
+                return e.messages, 400
+        else:
+            return "The board does not exist or you don't have enough privileges to see it.", 400
 
-
+    def __validate_params(self, board, args):
+        if args.get('row') >= board.rows:
+            raise ValidationError('Row out of range.')
+        if args.get('column') >= board.rows:
+            raise ValidationError('Column out of range.')
+        if args.get('operation') not in ['X', '?', 'F']:
+            raise ValidationError('Invalid Operation.')
