@@ -1,5 +1,6 @@
 import random
 from datetime import datetime
+import pytz
 
 from sqlalchemy import Column, types, ForeignKey, JSON
 from sqlalchemy.ext.mutable import MutableDict
@@ -16,12 +17,33 @@ class Board(db.Model):
     columns = Column(types.Integer, nullable=False)
     creation_date = Column(types.DateTime, nullable=False, default=datetime.utcnow)
     end_date = Column(types.DateTime, nullable=True)
+    resume_date = Column(types.DateTime, nullable=True)
     status = Column(types.String)
     mines = Column(MutableDict.as_mutable(JSON))
     current_game_state = Column(MutableDict.as_mutable(JSON))
+    time_elapsed = Column(types.Interval, nullable=True, )
 
     owner_id = Column(types.Integer(), ForeignKey('users.id'), nullable=False)
     owner = db.relationship("User", backref='board', lazy='joined')
+
+    def pause(self):
+        if self.status == 'paused':
+            return False, 'The game is already paused'
+        else:
+            if not self.time_elapsed:
+                self.time_elapsed = datetime.utcnow() - self.creation_date
+            else:
+                self.time_elapsed += datetime.utcnow() - self.resume_date
+            self.status = 'paused'
+            return True, ''
+
+    def resume(self):
+        if self.status != 'paused':
+            return False, 'The game is not paused.'
+        else:
+            self.resume_date = datetime.utcnow()
+            self.status = 'playing'
+            return True, ''
 
     def generate_mines_positions(self, mines):
         self.mines = dict(mines=[])

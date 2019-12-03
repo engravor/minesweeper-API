@@ -1,7 +1,7 @@
 import flask
 from flask import request
 from flask_jwt import jwt_required, current_identity
-from flask_restful import Resource
+from flask_restful import Resource, abort
 from marshmallow.exceptions import ValidationError
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -15,7 +15,7 @@ class RegisterUserResource(Resource):
     def post(self):
         args = register_user_schema.load(request.get_json() or {})
         if db.session.query(User).filter(User.username == args.get('username')).first():
-            return 'This username is already taken. Choose a different one.', 400
+            abort(400, message='This username is already taken. Choose a different one.')
         user = User(username=args.get('username'), password=args.get('password'))
         db.session.add(user)
         db.session.commit()
@@ -35,7 +35,7 @@ class BoardCollectionResource(Resource):
             db.session.commit()
             return flask.json.loads(board_schema.dumps(new_board)), 201
         except ValidationError as e:
-            return e.messages, 400
+            abort(400, message=e.messages)
 
     @jwt_required()
     def get(self):
@@ -51,7 +51,7 @@ class BoardEntityResource(Resource):
         if board:
             return flask.json.loads(board_schema.dumps(board))
         else:
-            return "The board does not exist or you don't have enough privileges to see it.", 400
+            abort(400, message="The board does not exist or you don't have enough privileges to see it.")
 
 
 class CellResource(Resource):
@@ -68,9 +68,9 @@ class CellResource(Resource):
                 db.session.commit()
                 return flask.json.loads(board_schema.dumps(board))
             except ValidationError as e:
-                return e.messages, 400
+                abort(400, message=e.messages)
         else:
-            return "The board does not exist or you don't have enough privileges to see it.", 400
+            abort(400, message="The board does not exist or you don't have enough privileges to see it.")
 
     def __validate_params(self, board, args):
         if args.get('row') >= board.rows:
@@ -79,3 +79,22 @@ class CellResource(Resource):
             raise ValidationError('Column out of range.')
         if args.get('operation') not in ['X', '?', 'F']:
             raise ValidationError('Invalid Operation.')
+
+class PauseResumeResource(Resource):
+
+    def post(self, board_id):
+        board = Board.query.filter_by(id=board_id).first()
+        if board:
+            action = request.args.get('action')
+            if action in ['pause', 'resume']:
+                action_method = getattr(board, action)
+                ok, message = action_method()
+                if not ok:
+                    abort(400, message=message)
+                db.session.add(board)
+                db.session.commit()
+                return flask.json.loads(board_schema.dumps(board))
+            else:
+                abort(400, message="Invalid operations.")
+        else:
+            abort(400, message="The board does not exist or you don't have enough privileges to see it.")
