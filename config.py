@@ -21,8 +21,13 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
                               'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
 
+class HerokuConfig(Config):
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://bfffgjpkqclazl:60664ad9d2cf64ba92bc6bd36417b4c368e0b6ec19d6a1a9e69609c4c13fec10@ec2-54-83-55-125.compute-1.amazonaws.com:5432/dcct34fdpcvmlj'
+
 
 config = {
     'development': DevelopmentConfig,
-    'default': DevelopmentConfig
+    'default': DevelopmentConfig,
+    'heroku': HerokuConfig
 }
