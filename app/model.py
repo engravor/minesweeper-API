@@ -1,7 +1,6 @@
 import random
-from datetime import datetime
-import pytz
 
+from datetime import datetime
 from sqlalchemy import Column, types, ForeignKey, JSON
 from sqlalchemy.ext.mutable import MutableDict
 from werkzeug.security import generate_password_hash, check_password_hash

@@ -1,4 +1,3 @@
-from datetime import datetime
 from marshmallow import Schema, fields, validates_schema
 from marshmallow.exceptions import ValidationError
 
@@ -36,14 +35,10 @@ class BoardSchema(Schema):
     mines = fields.Method("get_mines_number")
     current_game_state = fields.String()
     time_elapsed = fields.TimeDelta(precision=fields.TimeDelta.SECONDS)
-    status  = fields.String()
+    status = fields.String()
 
     def get_mines_number(self, obj):
         return len(obj.mines.get('mines'))
-
-    # def time_elapsed(self, obj):
-    #     time_traking = obj.end_date - obj.creation_date if obj.end_date else datetime.utcnow() - obj.creation_date
-    #     return str(time_traking)
 
 
 board_schema = BoardSchema()
