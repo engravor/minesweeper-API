@@ -79,6 +79,23 @@ class Board(db.Model):
                 self.__show_all_mines()
             else:
                 self.__show_self_and_neighbors(row, column)
+                ended, current_state = self.__check_end_game()
+                if ended:
+                    self.status = 'You Win'
+                    self.end_date = datetime.utcnow()
+                    if self.time_elapsed:
+                        self.time_elapsed += datetime.utcnow() - self.resume_date
+                    else:
+                        self.time_elapsed = datetime.utcnow() - self.creation_date
+
+    def __check_end_game(self):
+        for row in range(self.rows):
+            for column in range(self.columns):
+                if self.current_game_state.get('state')[row][column] in ('-', 'F') and [row, column] not in self.mines.get('mines'):
+                    return False, None
+                elif self.current_game_state.get('state')[row][column] not in ('#', 'F') and [row, column] in self.mines.get('mines'):
+                    self.current_game_state.get('state')[row][column] = '#'
+        return True, self.current_game_state.get('state')
 
     def __show_all_mines(self):
         for row in range(self.rows):
