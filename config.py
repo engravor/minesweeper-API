@@ -8,6 +8,9 @@ class Config:
     SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_EXPIRATION_DELTA = timedelta(seconds=60 * 60 * 24)
+    SWAGGER_URL = '/swagger'
+    API_URL = '/static/swagger.json'
+
     @staticmethod
     def init_app(app):
         pass
