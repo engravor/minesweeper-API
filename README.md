@@ -23,6 +23,16 @@ There are some little things to take in account for playing the game:
     - ?: in order to mark the cell
 - Bombs appears as # , and if a bomb was previously flaged (F) it will appear as #!
 
+## UI Instruction
+
+As it was developed only for a quick look, the [UI App](https://api-client-cristian.herokuapp.com/) has lot of bugs an issue.
+So for a proper use these following steps should be followed:
+- [Register](https://api-client-cristian.herokuapp.com/register)
+- [Login](https://api-client-cristian.herokuapp.com/login)
+- [Game List](https://api-client-cristian.herokuapp.com/game)
+
+And from there the user is able to play, pause and resume all the games. 
+
 ## Decisions taken
 
 - In order to build the REST API Flask-RESTful was the chosen tool because of its simplicity and easy configuration (time was a main variable to take in acount).
