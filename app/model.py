@@ -75,6 +75,10 @@ class Board(db.Model):
                 self.status = 'game_over'
                 self.end_date = datetime.utcnow()
                 self.update_current_state(row, column, '#')
+                if self.time_elapsed:
+                    self.time_elapsed += datetime.utcnow() - self.resume_date
+                else:
+                    self.time_elapsed = datetime.utcnow() - self.creation_date
                 self.__show_all_mines()
             else:
                 self.__show_self_and_neighbors(row, column)
