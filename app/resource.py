@@ -73,9 +73,9 @@ class CellResource(Resource):
             abort(400, message="The board does not exist or you don't have enough privileges to see it.")
 
     def __validate_params(self, board, args):
-        if args.get('row') >= board.rows:
+        if args.get('row') > board.rows:
             raise ValidationError('Row out of range.')
-        if args.get('column') >= board.rows:
+        if args.get('column') > board.rows:
             raise ValidationError('Column out of range.')
         if args.get('operation') not in ['X', '?', 'F']:
             raise ValidationError('Invalid Operation.')

@@ -1,37 +1,34 @@
-# minesweeper-API
-API test
+# Minesweeper API
 
-We ask that you complete the following challenge to evaluate your development skills. Please use the programming language and framework discussed during your interview to accomplish the following task.
+REST api for playing classic minesweeper game, with authentication using JWT and game persistence (Postgres DB).
+The API had been made public on a free Heroku dyno (https://minesweeper-api-cristian.herokuapp.com)
+As it was requested, an API client had been provided in oder to play/interact with this API,
+this is also published on Heroku (https://api-client-cristian.herokuapp.com/). This is a simple API Client that does not 
+cover all the API functionality but provides a brief view of it.
 
-## The Game
-Develop the classic game of [Minesweeper](https://en.wikipedia.org/wiki/Minesweeper_(video_game))
+## API documentation
 
-## Show your work
+A full API documentation had been provided using Swagger. This could be accessed from [here](https://minesweeper-api-cristian.herokuapp.com/swagger/)
+or it also could be seen using the source found on https://minesweeper-api-cristian.herokuapp.com/static/swagger.json 
+and copy and pasting the content on Swagger online editor (https://editor.swagger.io)
 
-1.  Create a Public repository ( please dont make a pull request, clone the private repository and create a new plublic one on your profile)
-2.  Commit each step of your process so we can follow your thought process.
+## API Instruction 
 
-## What to build
-The following is a list of items (prioritized from most important to least important) we wish to see:
-* Design and implement  a documented RESTful API for the game (think of a mobile app for your API)
-* Implement an API client library for the API designed above. Ideally, in a different language, of your preference, to the one used for the API
-* When a cell with no adjacent mines is revealed, all adjacent squares will be revealed (and repeat)
-* Ability to 'flag' a cell with a question mark or red flag
-* Detect when game is over
-* Persistence
-* Time tracking
-* Ability to start a new game and preserve/resume the old ones
-* Ability to select the game parameters: number of rows, columns, and mines
-* Ability to support multiple users/accounts
- 
-## Deliverables we expect:
-* URL where the game can be accessed and played (use any platform of your preference: heroku.com, aws.amazon.com, etc)
-* Code in a public Github repo
-* README file with the decisions taken and important notes
+There are some little things to take in account for playing the game:
+- First the user must register it self and the authenticate in order to obtain proper JWT (header would be {Authentication: JWT <access_toke>})
+- The user needs to create a new board to play providing the number of rows, columns and mines that s/he prefers
+- In order to play the user has 3 options to play:
+    - X: to reveal a cell
+    - F: to flag a cell
+    - ?: in order to mark the cell
+- Bombs appears as # , and if a bomb was previously flaged (F) it will appear as #!
 
-## Time Spent
-You do not need to fully complete the challenge. We suggest not to spend more than 5 hours total, which can be done over the course of 2 days.  Please make commits as often as possible so we can see the time you spent and please do not make one commit.  We will evaluate the code and time spent.
- 
-What we want to see is how well you handle yourself given the time you spend on the problem, how you think, and how you prioritize when time is insufficient to solve everything.
+## Decisions taken
 
-Please email your solution as soon as you have completed the challenge or the time is up.
+- In order to build the REST API Flask-RESTful was the chosen tool because of its simplicity and easy configuration (time was a main variable to take in acount).
+- To manage database scripts and model changes it was used Flask-Migrate, because it simplify all the sql scripting and allow a better control of DB changes.   
+- For authentication Flask-JWT was used because web tokens were the best option for this case. 
+- I chose PostgreSQL as a DB engine because its flexibility on typing and that allowed me to represent in a confortable way the game characteristics (saving me lot of time).
+
+## Notes
+- The API Client only response at a happy game path. It does not support all the validations and erros messages that the API supports. The only excuses for this was the lack of time
